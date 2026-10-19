@@ -159,7 +159,7 @@
         <canvas id="clock" width="200" height="200"></canvas>
         
         <div class="input-group">
-            <input type="text" id="user-input" placeholder="예: ごぜん いちじ はん" autocomplete="off" autocorrect="off" autocapitalize="none">
+            <input type="text" id="user-input" placeholder="예: ごぜんいちじはん 또는 ごぜん いちじ はん" autocomplete="off" autocorrect="off" autocapitalize="none">
             <button id="submit-btn" onclick="checkAnswer()">확인</button>
         </div>
         
@@ -167,7 +167,7 @@
 
         <details class="hint-box">
             <summary>💡 입력 규칙 및 정답 힌트</summary>
-            <p style="margin: 8px 0 4px 0;">• 히라가나 또는 띄어쓰기로 작성해주세요.</p>
+            <p style="margin: 8px 0 4px 0;">• <b>띄어쓰기를 하든 안 하든 상관없이 정답 처리됩니다.</b></p>
             <p style="margin: 0 0 4px 0;">• <b>오전/오후:</b> ごぜん / ごご</p>
             <p style="margin: 0 0 4px 0;">• <b>주의해야 할 시(時):</b> 4시(よじ), 7시(しちじ), 9시(くじ)</p>
             <p style="margin: 0;">• <b>반:</b> はん (예: ごぜん いちじ はん)</p>
@@ -242,7 +242,6 @@
 
         isProcessing = false;
         
-        // 입력창 및 버튼 다시 활성화
         const inputEl = document.getElementById('user-input');
         const btnEl = document.getElementById('submit-btn');
         inputEl.disabled = false;
@@ -318,14 +317,15 @@
     function checkAnswer() {
         if (isProcessing) return;
 
-        let userInput = document.getElementById('user-input').value.trim();
-        let cleanInput = userInput.replace(/\s+/g, '');
+        let userInput = document.getElementById('user-input').value;
+        
+        // 모든 종류의 공백(반각, 전각, 연속 공백 등) 제거
+        let cleanInput = userInput.replace(/[\s\u200B-\u200D\uFEFF\u3000]/g, '');
 
         if (!cleanInput) return;
 
         isProcessing = true;
 
-        // 제출 직후 입력창과 버튼 잠금 (추가 입력 방지)
         const inputEl = document.getElementById('user-input');
         const btnEl = document.getElementById('submit-btn');
         inputEl.disabled = true;
@@ -335,7 +335,9 @@
         let correctHour = hourToHiragana[currentHour];
         let correctHalf = currentIsHalf ? "はん" : "";
 
-        let correctAnswer = correctAmPm + correctHour + correctHalf;
+        // 정답 문자열 (공백 없는 정답)
+        let correctAnswer = (correctAmPm + correctHour + correctHalf).replace(/[\s\u3000]/g, '');
+        // 화면 표시용 정답
         let displayAnswer = `${correctAmPm} ${correctHour} ${correctHalf}`.trim();
 
         let resultMsg = document.getElementById('result-msg');
@@ -350,7 +352,6 @@
             resultMsg.innerText = `❌ 틀렸습니다. 정답: ${displayAnswer}`;
         }
 
-        // 1.5초 후 자동으로 정답 메시지를 지우고 다음 문제로 이동
         setTimeout(() => {
             resultMsg.innerText = "";
             questionCount++;
