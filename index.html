@@ -77,6 +77,10 @@
         input[type="text"]:focus {
             border-color: #4299e1;
         }
+        input[type="text"]:disabled {
+            background-color: #edf2f7;
+            cursor: not-allowed;
+        }
         button {
             padding: 12px 20px;
             background-color: #4299e1;
@@ -90,6 +94,10 @@
         }
         button:hover {
             background-color: #3182ce;
+        }
+        button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
         }
         .result-message {
             min-height: 28px;
@@ -114,7 +122,6 @@
             cursor: pointer;
             color: #2b6cb0;
         }
-        /* 최종 점수 화면 */
         .final-screen {
             display: none;
             padding: 20px 0;
@@ -141,7 +148,6 @@
 <div class="game-card">
     <h1>⏰ 일본어 시계 읽기</h1>
     
-    <!-- 게임 진행 화면 -->
     <div id="game-container">
         <div class="status-bar">
             <span>문제: <span id="question-count">1</span> / 10</span>
@@ -168,7 +174,6 @@
         </details>
     </div>
 
-    <!-- 최종 결과 화면 -->
     <div id="final-screen" class="final-screen">
         <h2>🎉 게임 종료!</h2>
         <p>10문제를 모두 풀었습니다.</p>
@@ -184,7 +189,7 @@
     let score = 0;
     let questionCount = 1;
     const maxQuestions = 10;
-    let isProcessing = false; // 중복 클릭 방지
+    let isProcessing = false;
 
     const hourToHiragana = {
         1: "いちじ",
@@ -218,7 +223,6 @@
     function restartGame() {
         score = 0;
         questionCount = 1;
-        isProcessing = false;
         
         document.getElementById('score').innerText = score;
         document.getElementById('question-count').innerText = questionCount;
@@ -237,6 +241,13 @@
         }
 
         isProcessing = false;
+        
+        // 입력창 및 버튼 다시 활성화
+        const inputEl = document.getElementById('user-input');
+        const btnEl = document.getElementById('submit-btn');
+        inputEl.disabled = false;
+        btnEl.disabled = false;
+
         document.getElementById('question-count').innerText = questionCount;
         
         currentHour = Math.floor(Math.random() * 12) + 1;
@@ -244,8 +255,8 @@
         currentIsAm = Math.random() < 0.5;
 
         document.getElementById('ampm-text').innerText = currentIsAm ? '☀️ 오전 (AM)' : '🌙 오후 (PM)';
-        document.getElementById('user-input').value = '';
-        document.getElementById('user-input').focus();
+        inputEl.value = '';
+        inputEl.focus();
         
         drawClock(currentHour, currentIsHalf ? 30 : 0);
     }
@@ -314,6 +325,12 @@
 
         isProcessing = true;
 
+        // 제출 직후 입력창과 버튼 잠금 (추가 입력 방지)
+        const inputEl = document.getElementById('user-input');
+        const btnEl = document.getElementById('submit-btn');
+        inputEl.disabled = true;
+        btnEl.disabled = true;
+
         let correctAmPm = currentIsAm ? "ごぜん" : "ごご";
         let correctHour = hourToHiragana[currentHour];
         let correctHalf = currentIsHalf ? "はん" : "";
@@ -333,7 +350,7 @@
             resultMsg.innerText = `❌ 틀렸습니다. 정답: ${displayAnswer}`;
         }
 
-        // 1.5초 후 다음 문제로 이동
+        // 1.5초 후 자동으로 정답 메시지를 지우고 다음 문제로 이동
         setTimeout(() => {
             resultMsg.innerText = "";
             questionCount++;
