@@ -36,11 +36,11 @@
         .status-bar {
             display: flex;
             justify-content: space-between;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: bold;
             color: #4a5568;
             margin-bottom: 15px;
-            padding: 0 10px;
+            padding: 0 5px;
         }
         .time-badge {
             display: inline-block;
@@ -124,13 +124,22 @@
         }
         .final-screen {
             display: none;
-            padding: 20px 0;
+            padding: 10px 0;
         }
         .final-score {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: bold;
             color: #2b6cb0;
-            margin: 15px 0;
+            margin: 10px 0;
+        }
+        .time-result {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #4a5568;
+            background-color: #edf2f7;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
         .retry-btn {
             width: 100%;
@@ -150,7 +159,8 @@
     
     <div id="game-container">
         <div class="status-bar">
-            <span>문제: <span id="question-count">1</span> / 10</span>
+            <span>문제: <span id="question-count">1</span>/10</span>
+            <span>⏱️ <span id="timer">00:00</span></span>
             <span>점수: <span id="score">0</span>점</span>
         </div>
         
@@ -178,6 +188,7 @@
         <h2>🎉 게임 종료!</h2>
         <p>10문제를 모두 풀었습니다.</p>
         <div class="final-score"><span id="final-score-val">0</span> / 100점</div>
+        <div class="time-result">⏱️ 소요 시간: <span id="final-time-val">0분 0초</span></div>
         <button class="retry-btn" onclick="restartGame()">🔄 다시하기</button>
     </div>
 </div>
@@ -190,6 +201,10 @@
     let questionCount = 1;
     const maxQuestions = 10;
     let isProcessing = false;
+
+    // 타이머 관련 변수
+    let timerInterval = null;
+    let secondsElapsed = 0;
 
     const hourToHiragana = {
         1: "いちじ",
@@ -220,6 +235,29 @@
         });
     };
 
+    function startTimer() {
+        clearInterval(timerInterval);
+        secondsElapsed = 0;
+        updateTimerDisplay();
+        
+        timerInterval = setInterval(() => {
+            secondsElapsed++;
+            updateTimerDisplay();
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+    }
+
+    function updateTimerDisplay() {
+        let mins = Math.floor(secondsElapsed / 60);
+        let secs = secondsElapsed % 60;
+        let formattedMins = String(mins).padStart(2, '0');
+        let formattedSecs = String(secs).padStart(2, '0');
+        document.getElementById('timer').innerText = `${formattedMins}:${formattedSecs}`;
+    }
+
     function restartGame() {
         score = 0;
         questionCount = 1;
@@ -231,6 +269,7 @@
         document.getElementById('game-container').style.display = 'block';
         document.getElementById('final-screen').style.display = 'none';
         
+        startTimer();
         nextQuestion();
     }
 
@@ -318,8 +357,6 @@
         if (isProcessing) return;
 
         let userInput = document.getElementById('user-input').value;
-        
-        // 모든 종류의 공백(반각, 전각, 연속 공백 등) 제거
         let cleanInput = userInput.replace(/[\s\u200B-\u200D\uFEFF\u3000]/g, '');
 
         if (!cleanInput) return;
@@ -335,9 +372,7 @@
         let correctHour = hourToHiragana[currentHour];
         let correctHalf = currentIsHalf ? "はん" : "";
 
-        // 정답 문자열 (공백 없는 정답)
         let correctAnswer = (correctAmPm + correctHour + correctHalf).replace(/[\s\u3000]/g, '');
-        // 화면 표시용 정답
         let displayAnswer = `${correctAmPm} ${correctHour} ${correctHalf}`.trim();
 
         let resultMsg = document.getElementById('result-msg');
@@ -360,9 +395,16 @@
     }
 
     function showFinalScreen() {
+        stopTimer();
+        
+        let mins = Math.floor(secondsElapsed / 60);
+        let secs = secondsElapsed % 60;
+        let timeString = mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`;
+
         document.getElementById('game-container').style.display = 'none';
         document.getElementById('final-screen').style.display = 'block';
         document.getElementById('final-score-val').innerText = score;
+        document.getElementById('final-time-val').innerText = timeString;
     }
 </script>
 
